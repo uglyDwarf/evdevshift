@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "parser.h"
 #include "ev_process.h"
@@ -178,7 +179,7 @@ int find_device_by_name(const char *path, const char *devName)
       continue;
     }
 
-    fd = open(fname, O_RDONLY | O_NONBLOCK);
+    fd = open(fname, O_RDONLY);
     if(fd < 0){
       perror("open");
       //printf("Problem opening '%s'.\n", fname);
@@ -214,7 +215,7 @@ int explore_device(int fd, FILE *templ_file)
     config.real_btn_array[i] = 0;
   }
   //Initialize all axes as ignored
-  for(i = 0; i < ABS_MAX; ++i){
+  for(i = 0; i < ABS_CNT; ++i){
     config.axes[i].ignore = true;
   }
 
@@ -295,25 +296,23 @@ int explore_device(int fd, FILE *templ_file)
               char *name = find_axis_name(code);
               if(name){
                 fprintf(templ_file, "  axis %s = %d\n", name, code);
-                struct input_absinfo absinfo;
-                if(ioctl(fd, EVIOCGABS(code), &absinfo) < 0){
-                  perror("ioctl EVIOCGABS");
-                  return 1;
-                }
-                config.axes[code].center = (absinfo.minimum + absinfo.maximum) / 2.0;
-                //Hysteresis 1/4 of the full scale
-                config.axes[code].hysteresis = (absinfo.maximum - config.axes[code].center) / 2.0;
-                config.axes[code].current_state = INACTIVE;
-                config.axes[code].ignore = false;
-                config.axes[code].minimum = absinfo.minimum;
-                config.axes[code].maximum = absinfo.maximum;
-                config.axes[code].fuzz = absinfo.fuzz;
-                config.axes[code].flat = absinfo.flat;
-                config.axes[code].res = absinfo.resolution;
-              }else{
-                printf("Unknown axis Id %d.\n", code);
-              }
+	      }
+	    }
+            struct input_absinfo absinfo;
+            if(ioctl(fd, EVIOCGABS(code), &absinfo) < 0){
+              perror("ioctl EVIOCGABS");
+              return 1;
             }
+            config.axes[code].center = (absinfo.minimum + absinfo.maximum) / 2.0;
+            //Hysteresis 1/4 of the full scale
+            config.axes[code].hysteresis = (absinfo.maximum - config.axes[code].center) / 2.0;
+            config.axes[code].current_state = INACTIVE;
+            config.axes[code].ignore = false;
+            config.axes[code].minimum = absinfo.minimum;
+            config.axes[code].maximum = absinfo.maximum;
+            config.axes[code].fuzz = absinfo.fuzz;
+            config.axes[code].flat = absinfo.flat;
+            config.axes[code].res = absinfo.resolution;
           }
         }
       }
@@ -324,7 +323,6 @@ int explore_device(int fd, FILE *templ_file)
     fprintf(templ_file, "\n//Your configuration follows\n");
   }
 
-  close(fd);
   return 0;
 }
 
@@ -337,7 +335,7 @@ int send_event(struct input_event *ev)
     printf("NULL virt_dev.\n");
     return -1;
   }
-  int res = write(virt_dev, &ev, sizeof(struct input_event));
+  int res = write(virt_dev, ev, sizeof(struct input_event));
   if(res < 0){
     printf("Problem sending out an event!\n");
   }
@@ -408,13 +406,17 @@ int main(int argc, char *argv[])
   }
 
   explore_device(fd, templ_file);
+  
+  if(templ_file){
+    fclose(templ_file);
+    close(fd);
+    return 0;
+  }
 
   sort_out_buttons();
 
   print_config();
 
-#define VIRTUAL_DEVICE
-#ifdef VIRTUAL_DEVICE
   int ui = open("/dev/uinput", O_RDWR);
   if(ui < 0){
     perror("open");
@@ -437,7 +439,7 @@ int main(int argc, char *argv[])
   int i;
   for(i = 0; i < BUTTON_ARRAY_LEN; ++i){
     if(config.virtual_btn_array[i] == -1){
-      res |= (ioctl(ui, UI_SET_KEYBIT, i) == -1);
+      res |= (ioctl(ui, UI_SET_KEYBIT, i + BUTTON_MIN) == -1);
     }
   }
   res |= (ioctl(ui, UI_SET_EVBIT, EV_ABS) == -1);
@@ -468,8 +470,12 @@ int main(int argc, char *argv[])
   virt_dev = ui;
   while(1){
     read_in = read(fd, &event, sizeof(event));
-    if((read_in < 0) || (read_in % sizeof(struct input_event) != 0)){
-      printf("Read wrong number of bytes!\n");
+    if((read_in < 0) && (errno == EAGAIN)){
+      printf("Continuing.\n");
+      continue;
+    }
+    if(read_in % sizeof(struct input_event) != 0){
+      printf("Read wrong number of bytes (%d)!\n", (int)read_in);
       return 1;
     }
     size_t n;
@@ -477,7 +483,6 @@ int main(int argc, char *argv[])
       process_event(&(event[n]));
     }
   }
-#endif
 
   if(config.grabbed){
     ioctl(fd, EVIOCGRAB, (void*)1);

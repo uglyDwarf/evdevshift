@@ -1,0 +1,45 @@
+This program allows to map events from one evdev device to newly created
+virtual one. Buttons can be conditionaly remapped, and axes can be mapped
+to buttons (usefull to map hats to buttons).
+
+Prerequisities:
+Expecting bison and flex are installed.
+To allow easier testing, it is good idea to install the evtest program.
+
+Usage:
+
+Step 1.
+To build it, just run make...
+
+Step 2.
+Run program evtest to identify the device you want to use...
+E.g.
+
+> evtest
+Available devices:
+/dev/input/event12:	Jess Tech Dual Analog Rumble Pad
+
+Ctrl+C to exit the program.
+
+Step 3.
+./evdevshift --device /dev/input/event12 --template dev.conf
+
+This command creates the dev.conf template file, containing the available
+keys and axes.
+
+Step 4.
+Customize the conf file.
+
+See the test.conf file for some inspiration.
+
+Steep 5.
+Run the evdevshift with your new config.
+
+>./evdevshift --config dev.conf
+
+If all goes well, the new device should be visible and ready to use.
+
+Please be carefull, this is very early release, so the checking is minimal - 
+- if you instruct the program to do something stupid, it will do it...
+Please report any problems you encounter with this program - only that way
+you can ensure the problems will be fixed...
