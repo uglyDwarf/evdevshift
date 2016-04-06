@@ -342,6 +342,15 @@ int send_event(struct input_event *ev)
   return res;
 }
 
+void print_help()
+{
+  printf("Usage examples:\n");
+  printf("To create config template:\n");
+  printf("evdevshift --device /dev/input/event12 --template x52.conf\n");
+  printf("To create a virtual device based on the config:\n");
+  printf("evdevshift --config x52.conf\n");
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -352,7 +361,7 @@ int main(int argc, char *argv[])
   char *conf_file = NULL;
 
   while(1){
-    c = getopt_long(argc, argv, "t:d:", long_opts, &index);
+    c = getopt_long(argc, argv, "t:d:c:h", long_opts, &index);
     if(c < 0){
       break;
     }
@@ -372,7 +381,18 @@ int main(int argc, char *argv[])
           conf_file = optarg;
         }
         break;
+      case 'h':
+      default:
+        print_help();
+        break;
     }
+  }
+
+  if((dev && template && !conf_file) || (conf_file && !dev && !template)){
+    //valid combinations
+  }else{
+    print_help();
+    return 0;
   }
 
   int fd;

@@ -5,11 +5,16 @@ to buttons (usefull to map hats to buttons).
 Prerequisities:
 Expecting bison and flex are installed.
 To allow easier testing, it is good idea to install the evtest program.
+To create a virtual device, you need to be able to write to /dev/uinput;
+  prefered method is to use ACLs to achieve that.
+  E.g. sudo setfacl -m user:simmer:rw /dev/uinput
+  This command adds rights to read/write /dev/uinput to user simmer.
 
 Usage:
 
 Step 1.
-To build it, just run make...
+To build it, just run make... If error occurs, check prerequisities 
+(bison, flex), and if something else is wrong, please file a bug.
 
 Step 2.
 Run program evtest to identify the device you want to use...
@@ -19,10 +24,10 @@ E.g.
 Available devices:
 /dev/input/event12:	Jess Tech Dual Analog Rumble Pad
 
-Ctrl+C to exit the program.
+Use Ctrl+C to exit the program.
 
 Step 3.
-./evdevshift --device /dev/input/event12 --template dev.conf
+> ./evdevshift --device /dev/input/event12 --template dev.conf
 
 This command creates the dev.conf template file, containing the available
 keys and axes.
