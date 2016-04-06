@@ -164,20 +164,21 @@ int main(int argc, char *argv[])
     config.virtual_btn_array[i] = 0;
   }
 
-  int btn_cond_trigger = 260;
-  int cond_ax_x_neg = 258;
-  int cond_ax_x_pos = 259;
-  int ax_y_neg = 263;
-  int ax_y_pos = 264;
-  int ax_rz_neg = 261;
-  int ax_rz_pos = 262;
-  int cond_ax_rz_neg = 256;
-  int cond_ax_rz_pos = 257;
+  int btn_cond_trigger = 4;
+  int btn_cond_thumb = 5;
+  int cond_ax_x_neg = 2;
+  int cond_ax_x_pos = 3;
+  int ax_y_neg = 8;
+  int ax_y_pos = 9;
+  int ax_rz_neg = 6;
+  int ax_rz_pos = 7;
+  int cond_ax_rz_neg = 0;
+  int cond_ax_rz_pos = 1;
 
   printf("===========================================================\n");
   //Nothing
   process_event(create_event(&ev, EV_REL, 0, 0));
-  process_event(create_event(&ev, EV_KEY, 200 ,1));
+  process_event(create_event(&ev, EV_KEY, 1024 ,1));
   process_event(create_event(&ev, EV_ABS, 200 ,1));
   ev_stack_check_empty();
   printf("===========================================================\n");
@@ -218,12 +219,12 @@ int main(int argc, char *argv[])
   ev_stack_check_empty();
 
   printf("//  Pressing/releasing a button not handled by this condition\n");
-  process_event(create_event(&ev, EV_KEY, BTN_THUMB, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, BTN_THUMB, 1));
+  process_event(create_event(&ev, EV_KEY, BTN_BASE4, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, BTN_BASE4, 1));
   ev_stack_check_empty();
 
-  process_event(create_event(&ev, EV_KEY, BTN_THUMB, 0));
-  ev_stack_check(create_event(&res1, EV_KEY, BTN_THUMB, 0));
+  process_event(create_event(&ev, EV_KEY, BTN_BASE4, 0));
+  ev_stack_check(create_event(&res1, EV_KEY, BTN_BASE4, 0));
   ev_stack_check_empty();
 
   printf("//  Pressing/releasing a button handled by this condition\n");

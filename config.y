@@ -99,11 +99,39 @@ axis_map:       TOKEN_AXIS TOKEN_STRING {
 
 condition_spec: TOKEN_IF condition condition_block {
                   if($3 != NULL){
-                    t_state *tmp = (t_state*)malloc(sizeof(t_state));
-                    tmp->next = config.state;
-                    tmp->condition = $2;
-                    tmp->ops = $3;
-                    config.state = tmp;
+                    //Check if the condition is not used already
+                    t_state *tmp = config.state;
+                    bool found = false;
+                    while(tmp){
+                      if(tmp->condition->val == $2->val){
+                        //Condition exists already, merge the oprations
+                        t_op *op = tmp->ops;
+                        while(op){
+                          if(op->next == NULL){
+                            //found the tail, append the new part
+                            op->next = $3;
+                            found = true;
+                            break;
+                          }else{
+                            op = op->next;
+                          }
+                        }
+                        if(found){
+                          break;
+                        }
+                      }
+                      tmp = tmp->next;
+                    }
+                    if(!found){
+                      t_state *tmp = (t_state*)malloc(sizeof(t_state));
+                      tmp->next = config.state;
+                      tmp->condition = $2;
+                      tmp->ops = $3;
+                      config.state = tmp;
+                    }else{
+                      free($2->name);
+                      free($2);
+                    }
                   }else{
                     free($2->name);
                     free($2);
