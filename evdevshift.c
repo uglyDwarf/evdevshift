@@ -139,11 +139,13 @@ char *find_axis_name(int ctrl)
   int i = 0;
   while(axis_map[i].ctrl >= 0){
     if(axis_map[i].ctrl == ctrl){
-      return axis_map[i].desc;
+      return strdup(axis_map[i].desc);
     }
     ++i;
   }
-  return NULL;
+  char *new_name = NULL;
+  asprintf(&new_name, "ABS_%03X", ctrl);
+  return new_name;
 }
 
 char *find_button_name(int ctrl)
@@ -151,11 +153,13 @@ char *find_button_name(int ctrl)
   int i = 0;
   while(button_map[i].ctrl >= 0){
     if(button_map[i].ctrl == ctrl){
-      return button_map[i].desc;
+      return strdup(button_map[i].desc);
     }
     ++i;
   }
-  return NULL;
+  char *new_name = NULL;
+  asprintf(&new_name, "BUTTON_%02X", ctrl);
+  return new_name;
 }
 
 
@@ -284,19 +288,15 @@ int explore_device(int fd, FILE *templ_file)
             add_used_button(config.real_btn_array, code, true);
             if(templ_file){
               char *name = find_button_name(code);
-              if(name){
-                fprintf(templ_file, "  button %s = %d\n", name, code);
-              }else{
-                printf("Unknown button Id %d.\n", code);
-              }
+              fprintf(templ_file, "  button %s = %d\n", name, code);
+              free(name);
             }
           }
           if(ev == EV_ABS){
             if(templ_file){
               char *name = find_axis_name(code);
-              if(name){
-                fprintf(templ_file, "  axis %s = %d\n", name, code);
-	      }
+              fprintf(templ_file, "  axis %s = %d\n", name, code);
+	      free(name);
 	    }
             struct input_absinfo absinfo;
             if(ioctl(fd, EVIOCGABS(code), &absinfo) < 0){
