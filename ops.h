@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 //BTN_* balues from /usr/include/linux/input.h
-#define BUTTON_MIN 0x0
+#define BUTTON_MIN 0x120
 #define BUTTON_MAX  KEY_MAX
 #define BUTTON_ARRAY_LEN (BUTTON_MAX - BUTTON_MIN + 1)
 
