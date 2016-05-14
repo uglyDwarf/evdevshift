@@ -1,4 +1,4 @@
-CPPFLAGS=-g -Wall -Wextra -Werror
+CPPFLAGS=-g -Wall -Wextra 
 COMMON_SOURCES=ops.c parser.c ev_process.c
 PARSER_SOURCES=config_bison.c config_lex.c
 SOURCES_EDS=$(COMMON_SOURCES) evdevshift.c
