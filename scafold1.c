@@ -164,16 +164,16 @@ int main(int argc, char *argv[])
     config.virtual_btn_array[i] = 0;
   }
 
-  int btn_cond_trigger = 4;
-  int btn_cond_thumb = 5;
-  int cond_ax_x_neg = 2;
-  int cond_ax_x_pos = 3;
-  int ax_y_neg = 8;
-  int ax_y_pos = 9;
-  int ax_rz_neg = 6;
-  int ax_rz_pos = 7;
-  int cond_ax_rz_neg = 0;
-  int cond_ax_rz_pos = 1;
+  int btn_cond_trigger = 292;
+  int btn_cond_thumb = 293;
+  int cond_ax_x_neg = 290;
+  int cond_ax_x_pos = 291;
+  int ax_y_neg = 296;
+  int ax_y_pos = 297;
+  int ax_rz_neg = 294;
+  int ax_rz_pos = 295;
+  int cond_ax_rz_neg = 288;
+  int cond_ax_rz_pos = 289;
 
   printf("===========================================================\n");
   //Nothing
