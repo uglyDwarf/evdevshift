@@ -21,6 +21,7 @@
 
 %token TOKEN_BUTTON
 %token TOKEN_AXIS
+%token TOKEN_NEW_AXIS
 %token <str> TOKEN_STRING
 %token TOKEN_EQ
 %token <num> TOKEN_NUMBER
@@ -88,6 +89,7 @@ axis_map:       TOKEN_AXIS TOKEN_STRING {
                     t_op *op = (t_op*)malloc(sizeof(t_op));
                     op->next = config.axis_maps;
                     op->source = name;
+                    op->map_type = AXIS_2_BUTTON;
                     op->map.axis_map.button_neg = 0;
                     op->map.axis_map.button_pos = 0;
                     config.axis_maps = op;
@@ -187,6 +189,7 @@ map_item:       TOKEN_BUTTON TOKEN_STRING {
                     t_op *op = (t_op*)malloc(sizeof(t_op));
                     op->next = NULL;
                     op->source = name;
+                    op->map_type = BUTTON_2_BUTTON;
                     op->map.target = 0;
                     $$ = op;
                   }
@@ -207,11 +210,34 @@ map_item:       TOKEN_BUTTON TOKEN_STRING {
                     t_op *op = (t_op*)malloc(sizeof(t_op));
                     op->next = NULL;
                     op->source = name;
+                    op->map_type = AXIS_2_BUTTON;
                     op->map.axis_map.button_neg = 0;
                     op->map.axis_map.button_pos = 0;
                     $$ = op;
                   }
                 }
+                | TOKEN_NEW_AXIS TOKEN_STRING /* axis name */ {
+                  t_ctrl_type type;
+                  int num = find_control($2, &type);
+                  if(num < 0){
+                    free($2);
+                    $$ = NULL;
+                  }else{
+                    t_name_def *name = (t_name_def*)malloc(sizeof(t_name_def));
+                    name->type = type;
+                    name->name = $2;
+                    name->val = num;
+                    name->next = NULL;
+
+                    t_op *op = (t_op*)malloc(sizeof(t_op));
+                    op->next = NULL;
+                    op->source = name;
+                    op->map_type = AXIS_2_AXIS;
+                    op->map.target = 0;
+                    $$ = op;
+                  }
+                }
+
 
 //                | condition_spec
 ;

@@ -95,17 +95,32 @@ void clean_up_config(void)
 }
 
 
-int find_free_button(int btn_array[])
+int get_free_control(int ctrl_array[], size_t len, t_ctrl_type ctrl_type)
 {
   size_t i;
-  for(i = 0; i < BUTTON_ARRAY_LEN; ++i){
-    if(btn_array[i] == 0){
-      add_used_button(btn_array, i + BUTTON_MIN, true);
-      return i + BUTTON_MIN;
+  for(i = 0; i < len; ++i){
+    if(ctrl_array[i] == 0){
+      return add_used_ctrl(ctrl_array, len, i, ctrl_type);
     }
   }
   return -1;
 }
+
+
+int get_free_button(int btn_array[])
+{
+  int res = get_free_control(btn_array, BUTTON_ARRAY_LEN, BUTTON);
+  if(res < 0){
+    return res;
+  }
+  return res + BUTTON_MIN;
+}
+
+int get_free_axis(int axis_array[])
+{
+  return get_free_control(axis_array, ABS_CNT, AXIS);
+}
+
 
 bool mark_available_button(int btn_array[], int button)
 {
@@ -118,20 +133,30 @@ bool mark_available_button(int btn_array[], int button)
   return true;
 }
 
-bool add_used_button(int btn_array[], int button, bool unique)
+
+int add_used_ctrl(int ctrl_array[], size_t len, unsigned int ctrl, t_ctrl_type ctrl_type)
 {
-  if((button < BUTTON_MIN) || (button > BUTTON_MAX)){
-    printf("Can't add button with Id %d; only values between %d and %d are alowed.\n", 
-      button, BUTTON_MIN, BUTTON_MAX);
-    return false;
+  if(ctrl > len - 1){
+    if(ctrl_type == BUTTON){
+      printf("Button Id. %d out of bounds(%d, %d inclusive)!", ctrl, BUTTON_MIN, BUTTON_MAX - 1);
+    }else{
+      printf("Axis Id. %d out of bounds(%d, %d inclusive)!", ctrl, ABS_MIN, ABS_MAX);
+    }
+    return -1;
   }
-  if(unique && (btn_array[button - BUTTON_MIN] != 0)){
-    printf("Button %d is already taken!\n", button);
-    return false;
+  if(ctrl_array[ctrl] != 0){
+    if(ctrl_type == BUTTON){
+      printf("Button Id. %d is already taken!", ctrl);
+    }else{
+      printf("Axis Id. %d is already taken!", ctrl);
+    }
+    return -2;
   }
-  btn_array[button - BUTTON_MIN] = -1;
-  return true;
+  ctrl_array[ctrl] = -1;
+  return ctrl;
 }
+
+
 
 bool sort_out_buttons(void)
 {
@@ -151,12 +176,17 @@ bool sort_out_buttons(void)
     while(p_op){
       switch(p_op->source->type){
         case BUTTON:
-          p_op->map.target = find_free_button(config.virtual_btn_array);
+          p_op->map.target = get_free_button(config.virtual_btn_array);
           break;
         case AXIS:
-          config.axes[p_op->source->val].ignore = true;
-          p_op->map.axis_map.button_neg = find_free_button(config.virtual_btn_array);
-          p_op->map.axis_map.button_pos = find_free_button(config.virtual_btn_array);
+          if(p_op->map_type == AXIS_2_BUTTON){
+            config.axes[p_op->source->val].ignore = true;
+            p_op->map.axis_map.button_neg = get_free_button(config.virtual_btn_array);
+            p_op->map.axis_map.button_pos = get_free_button(config.virtual_btn_array);
+          }else{
+            p_op->map.target = get_free_axis(config.axis_array);
+            config.axes[p_op->map.target] = config.axes[p_op->source->val];
+          }
           break;
       }
       p_op = p_op->next;
@@ -166,9 +196,13 @@ bool sort_out_buttons(void)
   //Assign axes
   p_op = config.axis_maps;
   while(p_op){
+    if(p_op->map_type == AXIS_2_BUTTON){
     config.axes[p_op->source->val].ignore = true;
-    p_op->map.axis_map.button_neg = find_free_button(config.virtual_btn_array);
-    p_op->map.axis_map.button_pos = find_free_button(config.virtual_btn_array);
+    p_op->map.axis_map.button_neg = get_free_button(config.virtual_btn_array);
+    p_op->map.axis_map.button_pos = get_free_button(config.virtual_btn_array);
+    }else{
+      printf("Unconditional axis-to-axis mapping ignored.\n");
+    }
     p_op = p_op->next;
   }
 

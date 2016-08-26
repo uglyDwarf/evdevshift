@@ -5,9 +5,11 @@
 #include <stdbool.h>
 
 //BTN_* balues from /usr/include/linux/input.h
-#define BUTTON_MIN 0x120
+#define BUTTON_MIN BTN_JOYSTICK
 #define BUTTON_MAX  KEY_MAX
 #define BUTTON_ARRAY_LEN (BUTTON_MAX - BUTTON_MIN + 1)
+
+#define ABS_MIN ABS_X
 
 typedef enum{
   BUTTON,
@@ -29,7 +31,7 @@ typedef struct{
 } t_axis_map;
 
 typedef union{
-  //Target button Id
+  //Target/axis button Id
   int target;
   //Target buttons when axis is negative/positive
   t_axis_map axis_map;
@@ -37,8 +39,15 @@ typedef union{
 
 typedef struct t_op t_op;
 
+typedef enum{
+  BUTTON_2_BUTTON,
+  AXIS_2_BUTTON,
+  AXIS_2_AXIS
+} t_map_type;
+
 struct t_op{
   t_name_def *source;
+  t_map_type map_type;
   t_map_op map;
   t_op *next;
 };
@@ -90,6 +99,7 @@ typedef struct{
   int real_btn_array[BUTTON_ARRAY_LEN];
   int virtual_btn_array[BUTTON_ARRAY_LEN];
   t_axis_info axes[ABS_CNT];
+  int axis_array[ABS_CNT];
   bool grab;
   bool grabbed;
 } t_config;

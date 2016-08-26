@@ -24,6 +24,7 @@ COMMENT         \/\/.*
 
 button      {return TOKEN_BUTTON;}
 axis        {return TOKEN_AXIS;}
+new_axis    {return TOKEN_NEW_AXIS;}
 if          {return TOKEN_IF;}
 device      {return TOKEN_DEVICE;}
 grab        {return TOKEN_GRAB;}

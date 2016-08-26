@@ -88,33 +88,37 @@ bool handle_condition_change(struct input_event *event)
   int key_state = event->value;
 
   //Check that the key is not being used as a condition trigger
-  bool condition_triggered = false;
   t_state *state = config.state;
   t_op *op;
   while(state){
-    if(key == state->condition->val){
-      //handle the condition entry/leave
-      op = state->ops;
-      while(op){
-        if(op->source->type == BUTTON){
-          //If the state of the real button differs from the state of the virtual one being mapped to,
-          //  send out an event to get them in line
-          if(key_state){
-            //condition activated
-            //  Target button state differs from the last record
-            if(config.real_btn_array[op->source->val - BUTTON_MIN] !=
-               config.virtual_btn_array[op->map.target - BUTTON_MIN]){
-              send_key_event(event, op->map.target, config.real_btn_array[op->source->val - BUTTON_MIN]);
-            }
-          }else{
-            //condition deactivated
-            if(config.real_btn_array[op->source->val - BUTTON_MIN] !=
-               config.virtual_btn_array[op->source->val - BUTTON_MIN]){
-              send_key_event(event, op->source->val, config.real_btn_array[op->source->val - BUTTON_MIN]);
-            }
+    //does the event concern the state?
+    if(key != state->condition->val){
+      state = state->next;
+      continue;
+    }
+    //handle the condition entry/leave
+    op = state->ops;
+    while(op){
+      if(op->source->type == BUTTON){
+        //If the state of the real button differs from the state of the virtual one being mapped to,
+        //  send out an event to get them in line
+        if(key_state){
+          //condition activated
+          //  Target button state differs from the last record
+          if(config.real_btn_array[op->source->val - BUTTON_MIN] !=
+             config.virtual_btn_array[op->map.target - BUTTON_MIN]){
+            send_key_event(event, op->map.target, config.real_btn_array[op->source->val - BUTTON_MIN]);
           }
-        }else if(op->source->type == AXIS){
-          if(key_state){
+        }else{
+          //condition deactivated
+          if(config.real_btn_array[op->source->val - BUTTON_MIN] !=
+             config.virtual_btn_array[op->source->val - BUTTON_MIN]){
+            send_key_event(event, op->source->val, config.real_btn_array[op->source->val - BUTTON_MIN]);
+          }
+        }
+      }else if(op->source->type == AXIS){
+        if(key_state){
+          if(op->map_type == AXIS_2_BUTTON){
             //check if axis state changed and act accordingly
             if(config.axes[op->source->val].current_state !=
                axis_state_from_buttons(op->map.axis_map.button_neg, op->map.axis_map.button_pos)){
@@ -125,45 +129,51 @@ bool handle_condition_change(struct input_event *event)
                                  op->map.axis_map.button_neg, op->map.axis_map.button_pos);
             }
           }else{
-            //leaving the condition
-            t_op *ax = config.axis_maps;
-            bool has_mapping = false;
-            // check if the axis has mapping outside the condition
-            while(ax){
-              if(ax->source->val != op->source->val){
-                //not our axis, not interested
-                ax = ax->next;
-                continue;
-              }
-              if(config.axes[ax->source->val].current_state !=
-                 axis_state_from_buttons(ax->map.axis_map.button_neg, ax->map.axis_map.button_pos)){
-                t_axis2btn new_state = config.axes[op->source->val].current_state;
-                config.axes[op->source->val].current_state = 
-                  axis_state_from_buttons(ax->map.axis_map.button_neg, ax->map.axis_map.button_pos);
-                handle_axis_change(event, ax->source->val, new_state,
-                                   ax->map.axis_map.button_neg, ax->map.axis_map.button_pos);
-                has_mapping = true;
-              }
+            //AXIS_2_AXIS
+            //  when the condition is entered, send the last value of the source axis as the new 
+            //  target axis value
+            struct input_event a = *event;
+            a.type = EV_ABS;
+            a.code = op->map.target;
+            a.value = config.axes[op->source->val].current_value;
+            send_event(&a);
+          }
+        }else{
+          //leaving the condition
+          t_op *ax = config.axis_maps;
+          bool has_mapping = false;
+          // check if the axis has mapping outside the condition
+          while(ax){
+            if(ax->source->val != op->source->val){
+              //not our axis, not interested
               ax = ax->next;
+              continue;
             }
-            if(!has_mapping){
-              struct input_event a = *event;
-              a.type = EV_ABS;
-              a.code = op->source->val;
-              a.value = config.axes[a.code].current_value;
-              send_event(&a);
+            if(config.axes[ax->source->val].current_state !=
+               axis_state_from_buttons(ax->map.axis_map.button_neg, ax->map.axis_map.button_pos)){
+              t_axis2btn new_state = config.axes[op->source->val].current_state;
+              config.axes[op->source->val].current_state = 
+                axis_state_from_buttons(ax->map.axis_map.button_neg, ax->map.axis_map.button_pos);
+              handle_axis_change(event, ax->source->val, new_state,
+                                 ax->map.axis_map.button_neg, ax->map.axis_map.button_pos);
+              has_mapping = true;
             }
+            ax = ax->next;
+          }
+          if(!has_mapping){
+            struct input_event a = *event;
+            a.type = EV_ABS;
+            a.code = op->source->val;
+            a.value = config.axes[a.code].current_value;
+            send_event(&a);
           }
         }
-        op = op->next;
       }
-      condition_triggered = true;
-      break;
+      op = op->next;
     }
-    state = state->next;
+    return true;
   }
-
-  return condition_triggered;
+  return false;
 }
 
 
@@ -212,13 +222,23 @@ bool process_axis_maps(struct input_event *event, t_op *op, bool *handled)
 {
   int axis = event->code;
   while(op){
-    if((op->source->type == AXIS) && (op->source->val == axis)){
+    if(op->source->val != axis){
+      op = op->next;
+      continue;
+    }
+    if(op->map_type == AXIS_2_BUTTON){
       t_axis2btn new_state = axis_state(event);
       if(new_state != config.axes[axis].current_state){
         handle_axis_change(event, axis, new_state, op->map.axis_map.button_neg, op->map.axis_map.button_pos);
         if(handled){
           *handled = true;
         }
+      }
+    }else{
+      event->code = op->map.target;
+      send_event(event);
+      if(handled){
+        *handled = true;
       }
     }
     op = op->next;

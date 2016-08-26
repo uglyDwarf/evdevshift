@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
       config.axes[names->val].ignore = false;
       config.axes[names->val].minimum = -1;
       config.axes[names->val].maximum = 1;
+      config.axis_array[names->val] = 1;
     }
     names = names->next;
   }
@@ -170,10 +171,11 @@ int main(int argc, char *argv[])
   int cond_ax_x_pos = 291;
   int ax_y_neg = 296;
   int ax_y_pos = 297;
-  int ax_rz_neg = 294;
-  int ax_rz_pos = 295;
-  int cond_ax_rz_neg = 288;
-  int cond_ax_rz_pos = 289;
+  int ax_hat0x_neg = 294;
+  int ax_hat0x_pos = 295;
+  int cond_ax_hat0x_neg = 288;
+  int cond_ax_hat0x_pos = 289;
+  int cond_ax_rz = 3;
 
   printf("===========================================================\n");
   //Nothing
@@ -380,35 +382,53 @@ int main(int argc, char *argv[])
 
   printf("===========================================================\n");
   //Axis changing throughout the condition
-  process_event(create_event(&ev, EV_ABS, ABS_RZ, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, ax_rz_pos, 1));
+  process_event(create_event(&ev, EV_ABS, ABS_HAT0X, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, ax_hat0x_pos, 1));
   ev_stack_check_empty();
 
   process_event(create_event(&ev, EV_KEY, BTN_BASE6, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_rz_pos, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_hat0x_pos, 1));
   ev_stack_check_empty();
 
-  process_event(create_event(&ev, EV_ABS, ABS_RZ, -1));
-  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_rz_pos, 0));
-  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_rz_neg, 1));
+  process_event(create_event(&ev, EV_ABS, ABS_HAT0X, -1));
+  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_hat0x_pos, 0));
+  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_hat0x_neg, 1));
   ev_stack_check_empty();
-
+  
   process_event(create_event(&ev, EV_KEY, BTN_BASE6, 0));
-  ev_stack_check(create_event(&res1, EV_KEY, ax_rz_pos, 0));
-  ev_stack_check(create_event(&res1, EV_KEY, ax_rz_neg, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, ax_hat0x_pos, 0));
+  ev_stack_check(create_event(&res1, EV_KEY, ax_hat0x_neg, 1));
   ev_stack_check_empty();
 
   process_event(create_event(&ev, EV_KEY, BTN_BASE6, 1));
   ev_stack_check_empty();
 
-  process_event(create_event(&ev, EV_ABS, ABS_RZ, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_rz_pos, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_rz_neg, 0));
+  process_event(create_event(&ev, EV_ABS, ABS_HAT0X, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_hat0x_pos, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, cond_ax_hat0x_neg, 0));
   ev_stack_check_empty();
 
   process_event(create_event(&ev, EV_KEY, BTN_BASE6, 0));
-  ev_stack_check(create_event(&res1, EV_KEY, ax_rz_pos, 1));
-  ev_stack_check(create_event(&res1, EV_KEY, ax_rz_neg, 0));
+  ev_stack_check(create_event(&res1, EV_KEY, ax_hat0x_pos, 1));
+  ev_stack_check(create_event(&res1, EV_KEY, ax_hat0x_neg, 0));
+  ev_stack_check_empty();
+
+  printf("===========================================================\n");
+  // new axis test
+  process_event(create_event(&ev, EV_ABS, ABS_RZ, 123));
+  ev_stack_check(create_event(&res1, EV_ABS, ABS_RZ, 123));
+  ev_stack_check_empty();
+
+  process_event(create_event(&ev, EV_KEY, BTN_BASE5, 1));
+  ev_stack_check(create_event(&res1, EV_ABS, cond_ax_rz, 123));
+  ev_stack_check_empty();
+  
+  process_event(create_event(&ev, EV_ABS, ABS_RZ, 13));
+  ev_stack_check(create_event(&res1, EV_ABS, cond_ax_rz, 13));
+  ev_stack_check_empty();
+
+  process_event(create_event(&ev, EV_KEY, BTN_BASE5, 0));
+  ev_stack_check(create_event(&res1, EV_ABS, ABS_RZ, 13));
   ev_stack_check_empty();
 
   if(problems > 0){

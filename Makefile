@@ -19,7 +19,7 @@ $(SOURCES_EDS): $(PARSER_SOURCES)
 config_bison.c config_bison.h : config.y
 	bison -r all -d -p eds -o config_bison.c config.y
 
-config_lex.c : config.l
+config_lex.c : config.l config_bison.h
 	flex -o $@ -P eds $<
 
 test: scafold1

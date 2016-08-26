@@ -112,6 +112,7 @@ int explore_device(int fd, FILE *templ_file)
   //Initialize all axes as ignored
   for(i = 0; i < ABS_CNT; ++i){
     config.axes[i].ignore = true;
+    config.axis_array[i] = 0;
   }
 
   char name[NAME_LENGTH];
@@ -176,7 +177,7 @@ int explore_device(int fd, FILE *templ_file)
       for(code = 0; code < KEY_MAX; ++code){
         if(bit[code / 8] & (1 << (code % 8))){//event is valid
           if(ev == EV_KEY){
-            add_used_button(config.real_btn_array, code, true);
+            add_used_ctrl(config.real_btn_array, BUTTON_ARRAY_LEN, code - BUTTON_MIN, BUTTON);
             if(templ_file){
               char *name = find_button_name(code);
               fprintf(templ_file, "  button %s = %d\n", name, code);
