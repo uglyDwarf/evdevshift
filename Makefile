@@ -23,7 +23,7 @@ config_lex.c : config.l config_bison.h
 	flex -o $@ -P eds $<
 
 test: scafold1
-	./scafold1
+	./scafold1 test.conf
 	gcov ev_process.c
 
 scafold1: $(SOURCES_SC1) $(PARSER_SOURCES)

@@ -138,8 +138,11 @@ int main(int argc, char *argv[])
   (void) argc;
   init_ev_stack();
   virt_dev = 1;
-  printf("Hello world!\n");
-  parse_config("test.conf");
+  if(argc != 2){
+    printf("Please supply the configuration file!\n");
+    return 0;
+  }
+  parse_config(argv[1]);
   t_name_def *names = config.ctrl_maps;
   while(names){
     if(names->type == BUTTON){
