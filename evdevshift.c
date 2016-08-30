@@ -205,6 +205,7 @@ int explore_device(int fd, FILE *templ_file)
             config.axes[code].fuzz = absinfo.fuzz;
             config.axes[code].flat = absinfo.flat;
             config.axes[code].res = absinfo.resolution;
+            config.axis_array[code] = -1;
           }
         }
       }
