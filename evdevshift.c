@@ -14,7 +14,6 @@
 
 #include "parser.h"
 #include "ev_process.h"
-#include "ctrl_defs.h"
 #define NAME_LENGTH 256
 
 static struct option long_opts[] = {
@@ -24,34 +23,6 @@ static struct option long_opts[] = {
   {0, 0, 0, 0}
 };
 
-
-char *find_axis_name(int ctrl)
-{
-  int i = 0;
-  while(axis_map[i].ctrl >= 0){
-    if(axis_map[i].ctrl == ctrl){
-      return strdup(axis_map[i].desc);
-    }
-    ++i;
-  }
-  char *new_name = NULL;
-  asprintf(&new_name, "ABS_%03X", ctrl);
-  return new_name;
-}
-
-char *find_button_name(int ctrl)
-{
-  int i = 0;
-  while(button_map[i].ctrl >= 0){
-    if(button_map[i].ctrl == ctrl){
-      return strdup(button_map[i].desc);
-    }
-    ++i;
-  }
-  char *new_name = NULL;
-  asprintf(&new_name, "BUTTON_%02X", ctrl);
-  return new_name;
-}
 
 
 int find_device_by_name(const char *path, const char *devName)
@@ -335,7 +306,7 @@ int main(int argc, char *argv[])
     perror("open");
     return 1;
   }
-  printf("File '%s' opened.\n", argv[2]);
+  printf("File '%s' opened.\n", conf_file);
 
   int res = 0;
   struct uinput_user_dev ud;
