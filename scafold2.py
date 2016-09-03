@@ -109,10 +109,12 @@ cap = make_cap(config)
 
 # create the source device
 ui = evdev.UInput(cap, name=config['devname'], vendor = 0xf30, product = 0x110, version=0x110)
-print(ui)
+
+eds_templ = subprocess.Popen(['./evdevshift_dbg', '--device={0}'.format(ui.device.fn), '--template=regrestest.conf'])
+
 
 # start the evdevshift and point it to the config
-eds = subprocess.Popen(['./evdevshift', '--config={0}'.format(arg)])
+eds = subprocess.Popen(['./evdevshift_dbg', '--config={0}'.format(arg)])
 
 # temporary, to make sure the evdevshift started and created the device...
 time.sleep(1)

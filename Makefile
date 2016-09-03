@@ -22,9 +22,18 @@ config_bison.c config_bison.h : config.y
 config_lex.c : config.l config_bison.h
 	flex -o $@ -P eds $<
 
-test: scafold1
+test_old: scafold1
 	./scafold1 test.conf
 	gcov ev_process.c
 
+test: $(EXECUTABLE)_dbg
+	./scafold2.py --config test1.conf
+	gcov evdevshift.c  ev_process.c  ops.c  parser.c
+
 scafold1: $(SOURCES_SC1) $(PARSER_SOURCES)
 	gcc -o $@ -g -fprofile-arcs -ftest-coverage $^
+
+$(EXECUTABLE)_dbg: $(SOURCES_EDS) $(PARSER_SOURCES)
+	gcc -o $@ -g -fprofile-arcs -ftest-coverage $^
+
+
