@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
     }
     if(read_in % sizeof(struct input_event) != 0){
       printf("Read wrong number of bytes (%d)!\n", (int)read_in);
-      return 1;
+      break;
     }
     size_t n;
     for(n = 0; n < read_in / sizeof(struct input_event); ++n){
