@@ -1,5 +1,5 @@
 name: evdevshift
-version: 0.1
+version: 1.0
 summary: Allows to map events from one evdev device to newly created virtual one
 description: This program allows to map events from one evdev device to newly created virtual one. Buttons can be conditionaly remapped, and axes can be mapped to buttons (usefull to map hats to buttons).
 confinement: devmode  # use "strict" to enforce system access only via declared interfaces
@@ -10,12 +10,10 @@ apps:
 
 parts:
     evdevshift: 
-        plugin: make
+        plugin: autotools
         source: https://github.com/uglyDwarf/evdevshift
         source-type: git
         build-packages:
         - bison
         - flex
-        stage-packages:
-        - bison
-        - flex
+
