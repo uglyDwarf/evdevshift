@@ -124,14 +124,21 @@ int get_free_axis(int axis_array[])
 
 bool mark_available_button(int btn_array[], int button)
 {
-  if((button < BUTTON_MIN) || (button > BUTTON_MAX)){
+  return mark_ctrl(btn_array, BUTTON_ARRAY_LEN, button, BUTTON_MIN, BUTTON_MAX, 0);
+}
+
+bool mark_ctrl(int ctrl_array[], size_t len, int ctrl, int min, int max, int val)
+{
+  if((ctrl < BUTTON_MIN) || (ctrl > BUTTON_MAX)){
     printf("Can't add button with Id %d; only values between %d and %d are alowed.\n", 
-      button, BUTTON_MIN, BUTTON_MAX);
+      ctrl, BUTTON_MIN, BUTTON_MAX);
     return false;
   }
-  btn_array[button - BUTTON_MIN] = 0;
+  ctrl_array[ctrl - BUTTON_MIN] = val;
   return true;
 }
+
+
 
 
 int add_used_ctrl(int ctrl_array[], size_t len, unsigned int ctrl, t_ctrl_type ctrl_type)
@@ -161,7 +168,16 @@ int add_used_ctrl(int ctrl_array[], size_t len, unsigned int ctrl, t_ctrl_type c
 bool sort_out_buttons(void)
 {
   //start by copying the real buttons to virtual ones
-  memcpy(config.virtual_btn_array, config.real_btn_array, sizeof(config.virtual_btn_array));
+  for(int i = 0; i < BUTTON_ARRAY_LEN; ++i){
+    if(config.virtual_btn_array[i] == 0){
+      config.virtual_btn_array[i] = config.real_btn_array[i];
+    } else {
+      if(config.real_btn_array[i] == -1){
+        printf("Button %d on the source device in the avoid spec.\nIgnoring the avoid spec.\n", BUTTON_MIN + i);
+      }
+    }
+  }
+
   //free the ones used in conditions (they won't propagate to the virtual device)
   t_state *p_state = config.state;
   while(p_state){

@@ -35,7 +35,17 @@ char *find_button_name(int ctrl)
   return new_name;
 }
 
-
+int find_button_number(const char *name)
+{
+  int i = 0;
+  while(button_map[i].ctrl >= 0){
+    if(strcmp(button_map[i].desc, name) == 0){
+      return button_map[i].ctrl;
+    }
+    ++i;
+  }
+  return -1;
+}
 
 void print_name_def(t_name_def *v, const char *prefix)
 {

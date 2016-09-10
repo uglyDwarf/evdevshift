@@ -28,6 +28,7 @@ new_axis    {return TOKEN_NEW_AXIS;}
 if          {return TOKEN_IF;}
 device      {return TOKEN_DEVICE;}
 grab        {return TOKEN_GRAB;}
+avoid       {return TOKEN_AVOID;}
 {EQ}        {return TOKEN_EQ;}
 {LPAREN}    {return TOKEN_LPAREN;}
 {RPAREN}    {return TOKEN_RPAREN;}

@@ -107,6 +107,7 @@ typedef struct{
 
 char *find_axis_name(int ctrl);
 char *find_button_name(int ctrl);
+int find_button_number(const char *name);
 void print_config(void);
 
 #endif

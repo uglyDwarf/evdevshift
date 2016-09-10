@@ -18,6 +18,8 @@ void clean_up_config(void);
 int find_free_button(int btn_array[]);
 bool mark_available_button(int btn_array[], int button);
 int add_used_ctrl(int ctrl_array[], size_t len, unsigned int button, t_ctrl_type ctrl_type);
+bool mark_ctrl(int ctrl_array[], size_t len, int ctrl, int min, int max, int val);
+
 
 bool sort_out_buttons(void);
 

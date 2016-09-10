@@ -1,5 +1,6 @@
 %{
   #include <stdio.h>
+  #include <strings.h>
 
   #include "parser.h"
   int edslex (void);
@@ -33,6 +34,7 @@
 %token TOKEN_COMA
 %token TOKEN_DEVICE
 %token TOKEN_GRAB
+%token TOKEN_AVOID
 
 %type <name> condition
 %type <op> condition_block map_item maps
@@ -47,7 +49,26 @@ line:           device_spec
                 |name_def
                 | axis_map
                 | condition_spec
+                | avoid_spec
 ;
+
+avoid_spec:     TOKEN_AVOID avoid_list
+;
+
+avoid_list:     TOKEN_BUTTON TOKEN_STRING {
+                  int btn = find_button_number($2);
+                  if(btn >= 0){
+                    printf("Avoid %s.\n", $2);
+                    mark_ctrl(config.virtual_btn_array, BUTTON_ARRAY_LEN, btn, BUTTON_MIN, BUTTON_MAX, -2);
+                  }
+                }
+                | avoid_list TOKEN_COMA TOKEN_BUTTON TOKEN_STRING {
+                  int btn = find_button_number($4);
+                  if(btn >= 0){
+                    printf("Avoid %s.\n", $4);
+                    mark_ctrl(config.virtual_btn_array, BUTTON_ARRAY_LEN, btn, BUTTON_MIN, BUTTON_MAX, -2);
+                  }
+                }
 
 device_spec:    TOKEN_DEVICE TOKEN_STRING {
                   config.device = $2;

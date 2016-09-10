@@ -219,6 +219,7 @@ void print_help()
 int main(int argc, char *argv[])
 {
   int c;
+  int i;
   int index;
   char *template = NULL;
   char *dev = NULL;
@@ -260,6 +261,11 @@ int main(int argc, char *argv[])
   }
 
   int fd;
+
+  //Clean up - buttons to avoid will be marked here
+  for(i = 0; i < BUTTON_ARRAY_LEN; ++i){
+    config.virtual_btn_array[i] = 0;
+  }
 
   if(conf_file){
     parse_config(conf_file);
@@ -320,7 +326,6 @@ int main(int argc, char *argv[])
 
   res |= (ioctl(ui, UI_SET_EVBIT, EV_SYN) == -1);
   res |= (ioctl(ui, UI_SET_EVBIT, EV_KEY) == -1);
-  int i;
   for(i = 0; i < BUTTON_ARRAY_LEN; ++i){
     if(config.virtual_btn_array[i] == -1){
       res |= (ioctl(ui, UI_SET_KEYBIT, i + BUTTON_MIN) == -1);
