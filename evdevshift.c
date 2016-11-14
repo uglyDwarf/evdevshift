@@ -362,6 +362,10 @@ int main(int argc, char *argv[])
     if((read_in < 0) && (errno == EAGAIN)){
       printf("Continuing.\n");
       continue;
+    }else{
+      perror("Read");
+      printf("Error reading from the device - quitting.\n");
+      break;
     }
     if(read_in % sizeof(struct input_event) != 0){
       printf("Read wrong number of bytes (%d)!\n", (int)read_in);
