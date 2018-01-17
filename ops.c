@@ -17,7 +17,10 @@ char *find_axis_name(int ctrl)
     ++i;
   }
   char *new_name = NULL;
-  asprintf(&new_name, "ABS_%03X", ctrl);
+  if(asprintf(&new_name, "ABS_%03X", ctrl) < 0){
+    printf("Asprintf failed in find_axis_name.\n");
+    return NULL;
+  }
   return new_name;
 }
 
@@ -31,7 +34,10 @@ char *find_button_name(int ctrl)
     ++i;
   }
   char *new_name = NULL;
-  asprintf(&new_name, "BUTTON_%02X", ctrl);
+  if(asprintf(&new_name, "BUTTON_%02X", ctrl) < 0){
+    printf("Asprintf failed in find_button_name.\n");
+    return(NULL);
+  }
   return new_name;
 }
 
