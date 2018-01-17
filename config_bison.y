@@ -121,7 +121,7 @@ axis_map:       TOKEN_AXIS TOKEN_STRING {
 ;
 
 condition_spec: TOKEN_IF condition condition_block {
-                  if($3 != NULL){
+                  if(($3 != NULL) && ($2 != NULL)){
                     //Check if the condition is not used already
                     t_state *tmp = config.state;
                     bool found = false;
@@ -156,8 +156,10 @@ condition_spec: TOKEN_IF condition condition_block {
                       free($2);
                     }
                   }else{
-                    free($2->name);
-                    free($2);
+                    if($2 != NULL){
+                      free($2->name);
+                      free($2);
+                    }
                   }
                 }
 ;
