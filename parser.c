@@ -49,7 +49,7 @@ int find_control(const char *ctrl_name, t_ctrl_type *ctrl)
       }
       tmp = tmp->next;
     }
-    printf("Unable to find control named '%s'.", ctrl_name);
+    printf("Unable to find control named '%s'.\n", ctrl_name);
     return -1;
 }
 
@@ -178,10 +178,23 @@ bool sort_out_buttons(void)
     }
   }
 
-  //free the ones used in conditions (they won't propagate to the virtual device)
+  //free the ones used in conditions (they won't propagate to the virtual device),
+  //  except for the buttons both in the condition and the condition's body
+  //  (when user wants to know the modifier is pressed)
   t_state *p_state = config.state;
   while(p_state){
-    mark_available_button(config.virtual_btn_array, p_state->condition->val);
+    bool propagate = false;
+    t_op *p_op = p_state->ops;
+    while(p_op){
+      if(p_op->source->val == p_state->condition->val){
+        propagate = true;
+        p_op->map.target = add_used_ctrl(config.virtual_btn_array, BUTTON_ARRAY_LEN, p_op->source->val, BUTTON);
+      }
+      p_op = p_op->next;
+    }
+    if(!propagate){
+      mark_available_button(config.virtual_btn_array, p_state->condition->val);
+    }
     p_state = p_state->next;
   }
   //Assign virtual buttons
@@ -192,7 +205,9 @@ bool sort_out_buttons(void)
     while(p_op){
       switch(p_op->source->type){
         case BUTTON:
-          p_op->map.target = get_free_button(config.virtual_btn_array);
+          if(p_op->map.target == 0){
+            p_op->map.target = get_free_button(config.virtual_btn_array);
+          }
           break;
         case AXIS:
           if(p_op->map_type == AXIS_2_BUTTON){
